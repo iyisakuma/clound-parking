@@ -1,16 +1,18 @@
 package br.com.iyisakuma.parking.controller;
 
-import br.com.iyisakuma.parking.controller.dto.ParkingDTO;
+import br.com.iyisakuma.parking.dto.ParkingDTO;
 import br.com.iyisakuma.parking.controller.mapper.ParkingMapper;
+import br.com.iyisakuma.parking.dto.ParkingCreateDTO;
+import br.com.iyisakuma.parking.model.Parking;
 import br.com.iyisakuma.parking.service.ParkingService;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
+import java.net.URI;
 import java.util.List;
 
 @RestController
-@RequestMapping("parking")
+@RequestMapping("/parkings")
 public class ParkingController {
 
 
@@ -23,8 +25,23 @@ public class ParkingController {
     }
 
     @GetMapping
-    public List<ParkingDTO> findAll(){
+    public ResponseEntity<List<ParkingDTO>> findAll(){
         var parkings = parkingService.findAll();
-        return parkingMapper.listOfParkingDTO(parkings);
+        return ResponseEntity.ok(parkingMapper.listOfParkingDTO(parkings));
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ParkingDTO> findById(@PathVariable String id){
+        Parking parking = parkingService.findById(id);
+        return ResponseEntity.ok(parkingMapper.toParkingDTO(parking));
+    }
+
+    @PostMapping
+    public ResponseEntity<ParkingDTO> save(@RequestBody ParkingCreateDTO dto){
+        var parking = parkingMapper.toParkingCreate(dto);
+        parking = parkingService.save(parking);
+        return ResponseEntity.created(URI.create("/parkings/" + parking.getId())).body(
+                parkingMapper.toParkingDTO(parking)
+        );
     }
 }
