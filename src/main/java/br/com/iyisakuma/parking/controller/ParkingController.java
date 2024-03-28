@@ -7,8 +7,8 @@ import br.com.iyisakuma.parking.model.Parking;
 import br.com.iyisakuma.parking.service.ParkingService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.util.UriComponentsBuilder;
 
-import java.net.URI;
 import java.util.List;
 
 @RestController
@@ -23,6 +23,11 @@ public class ParkingController {
         this.parkingService = parkingService;
         this.parkingMapper = parkingMapper;
     }
+    @PostMapping("/{id}")
+    public ResponseEntity<ParkingDTO> exit(@PathVariable String id,  UriComponentsBuilder uriBuilder){
+        parkingService.exit(id);
+        return ResponseEntity.ok().build();
+    }
 
     @GetMapping
     public ResponseEntity<List<ParkingDTO>> findAll(){
@@ -36,12 +41,27 @@ public class ParkingController {
         return ResponseEntity.ok(parkingMapper.toParkingDTO(parking));
     }
 
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ParkingDTO> deleteById(@PathVariable String id){
+        parkingService.delete(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<ParkingDTO> deleteById(@PathVariable String id, @RequestBody ParkingCreateDTO dto, UriComponentsBuilder uriBuilder){
+        Parking parking = parkingService.update(id, parkingMapper.toParkingCreate(dto)) ;
+        return ResponseEntity.ok().body(parkingMapper.toParkingDTO(parking));
+    }
     @PostMapping
-    public ResponseEntity<ParkingDTO> save(@RequestBody ParkingCreateDTO dto){
+    public ResponseEntity<ParkingDTO> create(@RequestBody ParkingCreateDTO dto, UriComponentsBuilder uriBuilder){
         var parking = parkingMapper.toParkingCreate(dto);
         parking = parkingService.save(parking);
-        return ResponseEntity.created(URI.create("/parkings/" + parking.getId())).body(
+        return ResponseEntity.created(uriBuilder.path("/parkings/{id}").buildAndExpand(parking.getId()).toUri()).body(
                 parkingMapper.toParkingDTO(parking)
         );
     }
+
+
+
+
 }
